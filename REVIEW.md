@@ -1,20 +1,20 @@
 # Reviewer guide
 
-## Start here
+1. Open [the demo](https://tofu-movies-demo.vercel.app) and choose **Start demo**. No signup is required.
+2. Browse the fictional sample films, add one to your watchlist, mark it watched and write a review. Edit your review and reload to check database persistence.
+3. Create and edit a list, then reset the demo. A new visitor session starts without the prior records.
+4. Inspect `server/visitor.ts`, `server/deleteOwnedUser.ts` and the schema for cookie lifetime, database budgets, capacity checks and cascading cleanup.
+5. Inspect `server/movieLists.ts`, the list/review routes and `server/writeSchemas.ts` for access rules and validated writes. Visitor mode restricts reads to the current visitor even when a list is marked public.
+6. Inspect `utils/reviewHtml.ts` and `next.config.js` for content sanitization and hosted module compatibility.
+7. Follow [VISITOR-DEMO.md](VISITOR-DEMO.md) to run the application and tests. `portfolio-site/` is the previous static edition, retained separately.
 
-1. Open [the demo](https://tofu-movies-demo.vercel.app). Search for “orbit,” save it, then open My watchlist.
-2. Open a film, mark it watched and write a review. Reload to see per-tab persistence, then use Reset demo.
-3. Inspect `portfolio/library.ts` for filtering and browser-state validation, and `portfolio/Demo.tsx` for the UI.
-4. Inspect `server/movieLists.ts` and `pages/api/movieLists/[id].ts` for the original application's access rules. The old GET-to-DELETE fallthrough is removed; owner-only deletion and shared editing are separate decisions.
-5. Inspect `server/writeSchemas.ts`, `utils/reviewHtml.ts` and the review reaction endpoint for validation and content handling.
-6. Run the commands in the README. `scripts/verify-local-api.mjs` verifies the actual handlers against a disposable database.
+## Verification
 
-## Verified September 18, 2026
+- TypeScript and production builds.
+- Twelve unit tests and 60 normal-mode HTTP/database regression assertions.
+- Separate visitor cookie jars test private lists/reviews, denied shared writes, cross-origin rejection and rendered-page isolation.
+- Database checks exercise physical cleanup, concurrent reset/write behavior, expiry and persisted request limits.
+- Desktop/mobile production browser workflows cover lists, watch history, editable reviews, reactions, reload, reset and failed-save recovery. Screenshots are inspected at both widths.
+- Hosted desktop/mobile workflows and separate-visitor API isolation checks passed on September 18, 2026, after correcting a Vercel sanitizer-loader incompatibility. The strict-loader regression check is included in continuous integration.
 
--   TypeScript check and original Next.js production build.
--   12 unit tests covering list permissions, input validation, filtering and browser state.
--   60 real HTTP/database checks covering read preservation, owner/member/outsider access, follow/unfollow, nested-write rejection, profile and review isolation, and server-rendered access.
--   Five Playwright scenarios, passed locally and against the public deployment, covering search/filtering, watchlists, reviews/reload/reset, independent visitors, mobile layout, and missing backend/credential paths.
--   Desktop and mobile screenshots inspected.
-
-The hosted experience is a static portfolio demo. It intentionally has no shared accounts, live catalogue, cloud uploads, database or external-service calls. This is not a claim that every legacy backend route is production-ready. See `RECOVERY.md` for the remaining work.
+Only synthetic records and a dedicated demo database are used. Google sign-in, live catalogue lookup and uploads are disabled. This does not claim that external integrations have been credential-tested or that all historical credentials have been revoked.

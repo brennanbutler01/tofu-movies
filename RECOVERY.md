@@ -1,6 +1,6 @@
 # Tofu.Movies recovery status
 
-Updated September 18, 2026. [Try the static demo](https://tofu-movies-demo.vercel.app). The original authenticated application runs locally with a disposable PostgreSQL database.
+Updated September 18, 2026. [Try the demo](https://tofu-movies-demo.vercel.app). The recovered application now has a database-backed, isolated visitor mode. See [VISITOR-DEMO.md](VISITOR-DEMO.md).
 
 ## Implemented and verified
 
@@ -16,7 +16,9 @@ Updated September 18, 2026. [Try the static demo](https://tofu-movies-demo.verce
 
 ## Deployment boundaries
 
-The hosted demo contains fictional films and per-tab watchlists/reviews. Only a static export is uploaded; it has no backend, database, provider keys or live catalogue. The authenticated application's external sign-in, catalogue and Cloudinary upload journeys still require testing with newly provisioned development credentials before hosting. Provider quotas, abuse limits and concurrent-write behavior need deployment-specific review.
+The public visitor mode uses fictional films and private PostgreSQL records with one-hour sessions, same-origin mutations, persisted budgets, capacity limits and cascading reset. It runs on the personal Vercel project with a dedicated Neon free database. Hosted desktop/mobile workflows and API isolation checks pass after fixing a sanitizer module-loading incompatibility. The verified runtime commit is `8ccbeca`, deployed as `dpl_9zstq9S9ga2W3x7PWbsrnR4Zdm8o`.
+
+The ordinary application's Google sign-in, live catalogue and Cloudinary upload journeys remain unverified with new credentials. They are disabled in visitor mode; normal-mode provider quotas and abuse limits need separate operational review. The previous static export remains under `portfolio-site/` for reference.
 
 See [DEPENDENCIES.md](DEPENDENCIES.md) for three remaining advisories in Prisma development tooling. These have not been marked fixed. Removed upload/editor dependencies and refreshed direct dependencies eliminate the prior application dependency backlog.
 

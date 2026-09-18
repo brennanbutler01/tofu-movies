@@ -6,7 +6,7 @@ A movie discovery and watchlist project built with TypeScript, React, Next.js, P
 
 The application now includes a no-signup mode backed by PostgreSQL: private visitor watchlists, watched status, editable lists and reviews, reactions, and reset. It uses three clearly labeled fictional films. Sessions last one hour; live catalogue services, Google sign-in and uploads are disabled in this mode.
 
-See [Visitor demo setup and verification](VISITOR-DEMO.md) for the build, local database, hosted configuration, isolation limits and tests. Deployment of this persisted edition is being verified; the URL above may still serve the prior static edition until that verification completes.
+See [Visitor demo setup and verification](VISITOR-DEMO.md) for the build, local database, hosted configuration, isolation limits and tests. The URL above serves this persisted edition. Hosted desktop/mobile workflows and separate-visitor API isolation checks passed on September 18, 2026.
 
 ## Development
 
