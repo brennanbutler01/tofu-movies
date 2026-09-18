@@ -46,7 +46,7 @@ jobs:
                   NEXT_PUBLIC_VISITOR_DEMO: 'true'
                   NEXTAUTH_URL: http://127.0.0.1:5218
               run: |
-                  corepack yarn start --hostname 127.0.0.1 --port 5218 > /tmp/tofu-movies-visitor.log 2>&1 &
+                  NODE_OPTIONS=--no-experimental-require-module corepack yarn start --hostname 127.0.0.1 --port 5218 > /tmp/tofu-movies-visitor.log 2>&1 &
                   app_pid=$!
                   trap 'kill "$app_pid"' EXIT
                   for attempt in $(seq 1 60); do

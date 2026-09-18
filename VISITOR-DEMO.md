@@ -34,3 +34,7 @@ Deploy only to the personal `tofu-movies-demo` Vercel project with the dedicated
 `corepack yarn deploy:visitor` stages tracked application source outside Git and uploads it to the linked personal project. Review and scan source before deployment. The previous static edition remains under `portfolio-site/` for reference; it is not the persisted application.
 
 Publication and history cleanup do not revoke old external credentials. Provider access requires separately provisioned credentials and verification.
+
+## Hosted module compatibility
+
+The sanitizer currently depends on an ESM-only parser through a CommonJS entrypoint. Vercel's function loader cannot use the local Node 24 synchronous ESM fallback. `next.config.js` explicitly bundles that parser chain and enables Webpack's loose ESM resolution; no dependency version override is used. Next emits a configuration warning for that compatibility setting. Continuous integration starts the visitor server with `NODE_OPTIONS=--no-experimental-require-module` so this failure cannot hide behind local runtime defaults. Revisit this setting when the sanitizer supports its dependency through a compatible entrypoint or the build moves away from Webpack.
