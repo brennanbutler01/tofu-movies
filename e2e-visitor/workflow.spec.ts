@@ -76,6 +76,14 @@ for (const mobile of [false, true])
             await expect(
                 page.getByText('Updated weekend collection', { exact: true })
             ).toBeVisible()
+            // An empty client cache must not trigger creation of a sample film.
+            await page.route('**/api/movies', route =>
+                route.fulfill({
+                    status: 200,
+                    contentType: 'application/json',
+                    body: '[]',
+                })
+            )
             await page.goto('/movies/910001')
             await expect(
                 page
@@ -91,6 +99,8 @@ for (const mobile of [false, true])
             await expect(
                 page.getByRole('button', { name: 'Watchlisted', exact: true })
             ).toBeVisible()
+            await page.unroute('**/api/movies')
+            await page.reload()
             await page
                 .getByRole('button', { name: 'Mark as watched', exact: true })
                 .click()

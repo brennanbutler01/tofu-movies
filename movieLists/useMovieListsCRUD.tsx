@@ -185,6 +185,23 @@ export const useMovieListsCRUD = () => {
     }
 
     const addMovieToList = async (listId: string, tmdb_id: number) => {
+        if (process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true') {
+            // Sample films already exist, even before the catalogue cache loads.
+            const response = await axios.put<FullMovieList>(
+                '/api/movieLists/' + listId,
+                { id: listId, movies: { connect: { tmdb_id } } }
+            )
+            await mutate(
+                '/api/movieLists',
+                (current: FullMovieList[] | undefined) =>
+                    current?.map(list =>
+                        list.id === listId ? response.data : list
+                    ),
+                { revalidate: true }
+            )
+            showNotification({ message: 'Updated list' })
+            return
+        }
         //check to see if we have the movie already crated
         const hasMovieBeenCreated = swrMovies?.find(
             movie => movie.tmdb_id === tmdb_id
