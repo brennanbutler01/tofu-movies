@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+
+}
+
+model ImageConfig {
+  updatedAt      DateTime @default(now())
+  id             Int      @id @default(0)
+  base_url       String
+  poster_sizes   String[]
+  backdrop_sizes String[]
+  logo_sizes     String[]
+  profile_sizes  String[]
+  still_sizes    String[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String              @id @default(cuid())
+  name          String?
+  email         String?             @unique
+  emailVerified DateTime?
+  image         String?
+  accounts      Account[]
+  likesDislikes ReviewLikeDislike[]
+  sessions      Session[]
+  userMovies    UserMovie[]
+  userProviders UserProvider[]
+  userReviews   UserReview[]
+  movieLists    MovieList[]
+}
+
+model UserProvider {
+  id            String  @id @default(uuid())
+  userId        String
+  tmdb_id       Int
+  logo          String?
+  provider_name String?
+  linked        Boolean @default(false)
+  user          User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, tmdb_id])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Rating {
+  id      String @id
+  source  String
+  value   String
+  movieId String
+  movie   Movie  @relation(fields: [movieId], references: [id])
+}
+
+model MovieList {
+  id          String   @id @default(uuid())
+  created     DateTime @default(now())
+  updatedAt   DateTime @default(now())
+  title       String
+  description String
+  isPublic    Boolean  @default(false)
+  allowEdits  Boolean  @default(true)
+  image       String?
+  users       User[]
+  movies      Movie[]
+  createdBy   String   @default("System Generated")
+  views       Int      @default(0)
+}
+
+model UserReview {
+  id            String              @id @default(uuid())
+  created       DateTime            @default(now())
+  updatedAt     DateTime            @default(now())
+  title         String
+  review        String
+  rating        Int
+  reviewerId    String
+  movieId       String
+  movie         Movie               @relation(fields: [movieId], references: [id])
+  reviewer      User                @relation(fields: [reviewerId], references: [id])
+  likesDislikes ReviewLikeDislike[]
+}
+
+model ReviewLikeDislike {
+  id         String      @id @default(uuid())
+  created    DateTime    @default(now())
+  updatedAt  DateTime    @default(now())
+  reviewId   String
+  reviewerId String
+  action     LikeActions
+  review     UserReview  @relation(fields: [reviewId], references: [id])
+  reviewer   User        @relation(fields: [reviewerId], references: [id])
+
+  @@unique([reviewId, reviewerId])
+}
+
+model Movie {
+  id              String       @id @default(uuid())
+  imdb_id         String?
+  tmdb_id         Int          @unique
+  created         DateTime     @default(now())
+  backdrop        String?
+  original_title  String?
+  overview        String?
+  tagline         String?
+  title           String?
+  release_date    String?
+  poster          String?
+  plot            String?
+  awards          String?
+  box_office      String?
+  genre           String[]
+  director        String[]
+  writers         String[]
+  actors          String[]
+  maturity_rating String?
+  ratings         Rating[]
+  userMovies      UserMovie[]
+  reviews         UserReview[]
+  lists           MovieList[]
+}
+
+model UserMovie {
+  id      String  @id @default(uuid())
+  movieId String
+  seen    Boolean @default(false)
+  userId  String
+  movie   Movie   @relation(fields: [movieId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+}
+
+enum LikeActions {
+  LIKE
+  DISLIKE
+}
