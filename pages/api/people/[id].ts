@@ -1,3 +1,6 @@
+import type { NextApiHandler } from 'next'
+import { withVisitorGuard } from 'server/visitor'
+import { withProviderAccess } from 'server/providerAccess'
 import axios from 'server/providerHttp'
 
 export interface IPersonDetail {
@@ -80,3 +83,13 @@ export const getPersonCredits = async (id: number) =>
         .catch(() => {
             throw new Error('Movie information is temporarily unavailable.')
         })
+
+const handler: NextApiHandler = async (req, res) => {
+    const id = Number(req.query.id)
+    if (!Number.isSafeInteger(id) || id <= 0) {
+        res.status(400).json({ error: 'A valid person ID is required.' })
+        return
+    }
+    res.json(await getPersonDetails(String(id)))
+}
+export default withVisitorGuard(withProviderAccess(handler))

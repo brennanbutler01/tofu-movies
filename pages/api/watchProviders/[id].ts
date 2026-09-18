@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import axios from 'server/providerHttp'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -23,16 +24,20 @@ const WATCH_PROVIDER_URL = (id: number) =>
 export const getWatchProviders = async (
     id: number
 ): Promise<IProviderResult | void> =>
-    await axios
-        .get(WATCH_PROVIDER_URL(id), {
-            params: {
-                api_key: process.env.MOVIE_KEY,
-            },
-        })
-        .then(res => res.data.results.US)
-        .catch(() => {
-            throw new Error('Movie information is temporarily unavailable.')
-        })
+    process.env.VISITOR_DEMO === 'true'
+        ? {}
+        : await axios
+              .get(WATCH_PROVIDER_URL(id), {
+                  params: {
+                      api_key: process.env.MOVIE_KEY,
+                  },
+              })
+              .then(res => res.data.results.US)
+              .catch(() => {
+                  throw new Error(
+                      'Movie information is temporarily unavailable.'
+                  )
+              })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -44,4 +49,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(403).json({ err: 'Error getting watch providers ' + err })
     }
 }
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

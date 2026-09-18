@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { Prisma } from '@prisma/client'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -13,10 +14,7 @@ import {
 } from '../../../server/movieLists'
 export { getMovieList } from '../../../server/movieLists'
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!['GET', 'PUT', 'DELETE'].includes(req.method || '')) {
         res.setHeader('Allow', 'GET, PUT, DELETE')
         return void res.status(405).json({ error: 'Method not allowed' })
@@ -61,6 +59,15 @@ export default async function handler(
                         body: { error: 'Invalid list update' },
                     }
                 const input = parsed.data
+                if (
+                    process.env.VISITOR_DEMO === 'true' &&
+                    input.movies?.create
+                ) {
+                    return {
+                        status: 403,
+                        body: { error: 'The sample catalogue is read-only.' },
+                    }
+                }
                 if (
                     (input.id && input.id !== id) ||
                     input.createdBy !== undefined ||
@@ -131,3 +138,5 @@ export default async function handler(
             .json({ error: 'Could not update movie list. Please retry.' })
     }
 }
+
+export default withVisitorGuard(handler)

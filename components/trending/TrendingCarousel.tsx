@@ -17,7 +17,11 @@ const TrendingCarousel = ({ trending, config }: ITrendingCarousel) => {
             <CarouselTitleControls
                 goBack={goBack}
                 goForward={goForward}
-                title='Trending'
+                title={
+                    process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true'
+                        ? 'Sample films'
+                        : 'Trending'
+                }
                 href='/trending'
             />
             <Carousel
@@ -25,7 +29,7 @@ const TrendingCarousel = ({ trending, config }: ITrendingCarousel) => {
                 getEmblaApi={setEmbla}
                 withControls={false}
                 withIndicators={false}
-                height={600}
+                height={420}
                 slideGap='md'
                 slideSize={'100%'}
                 breakpoints={[

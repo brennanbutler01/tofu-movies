@@ -1,3 +1,4 @@
+import { showNotification } from '@mantine/notifications'
 import { useRouter } from 'next/router'
 import { BiDislike, BiLike } from 'react-icons/bi'
 import { useReviewCRUD } from 'userReviews/useReviewCRUD'
@@ -20,14 +21,30 @@ export const useLikeDislike = ({ reviewId }: IUseLikeDislike) => {
 
     const likeReview = async () => {
         setLoading(true)
-        await likeDislikeReview(reviewId, 'LIKE', orderBy, sortOrder)
-        setLoading(false)
+        try {
+            await likeDislikeReview(reviewId, 'LIKE', orderBy, sortOrder)
+        } catch {
+            showNotification({
+                color: 'red',
+                message: 'Could not save your reaction. Please retry.',
+            })
+        } finally {
+            setLoading(false)
+        }
     }
 
     const dislikeReview = async () => {
         setLoading(true)
-        await likeDislikeReview(reviewId, 'DISLIKE', orderBy, sortOrder)
-        setLoading(false)
+        try {
+            await likeDislikeReview(reviewId, 'DISLIKE', orderBy, sortOrder)
+        } catch {
+            showNotification({
+                color: 'red',
+                message: 'Could not save your reaction. Please retry.',
+            })
+        } finally {
+            setLoading(false)
+        }
     }
 
     const { data: swrReviews } = useReviewSWR({})
@@ -36,7 +53,6 @@ export const useLikeDislike = ({ reviewId }: IUseLikeDislike) => {
 
     const likeDislikeSum = thisReview?.likesDislikes?.reduce(
         (acc, curr) => {
-            console.log('acc', acc)
             if (curr?.action === 'LIKE') {
                 return { dislikes: acc.dislikes, likes: acc.likes + 1 }
             } else {

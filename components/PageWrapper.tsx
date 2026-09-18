@@ -1,3 +1,4 @@
+import { VisitorNotice } from './VisitorNotice'
 import { AppShell, Card, Container, Stack, Text, Title } from '@mantine/core'
 import { useSession } from 'next-auth/react'
 import Head from 'next/head'
@@ -43,6 +44,7 @@ export const PageWrapper = ({
                     },
                 })}
             >
+                <VisitorNotice />
                 {(authRequired && status === 'unauthenticated') ||
                 status === 'loading' ? (
                     <Container

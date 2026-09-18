@@ -44,12 +44,21 @@ export const UserForm = ({ setLoading, setVisibility }: IFormProps) => {
 
     return (
         <form
-            //TODO - eventually make this more secure
             onSubmit={form.onSubmit(
                 async values => {
                     setLoading(true)
-                    await updateUser(values)
-                    setLoading(false)
+                    try {
+                        await updateUser(values)
+                        setVisibility(false)
+                    } catch {
+                        showNotification({
+                            color: 'red',
+                            message:
+                                'Could not save your profile. Your changes are still here.',
+                        })
+                    } finally {
+                        setLoading(false)
+                    }
                 },
                 errs => console.log(errs)
             )}
@@ -85,7 +94,14 @@ export const UserForm = ({ setLoading, setVisibility }: IFormProps) => {
                     )}
                     <Group position={'right'}>
                         <Checkbox
-                            label={'Show Avatar Upload'}
+                            disabled={
+                                process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true'
+                            }
+                            label={
+                                process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true'
+                                    ? 'Avatar uploads unavailable in demo'
+                                    : 'Show Avatar Upload'
+                            }
                             checked={avatarUploadVisible}
                             onChange={e =>
                                 setAvatarUploadVisible(e.currentTarget.checked)

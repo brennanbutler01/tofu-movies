@@ -1,3 +1,5 @@
+import { visitorMovieRelation } from 'server/visitorMovieRelation'
+import { withVisitorGuard } from 'server/visitor'
 import {
     OrderByDirections,
     ReviewOrderBy,
@@ -31,19 +33,20 @@ export type ReviewWithMovie = Prisma.UserReviewGetPayload<
 
 export const getReviews = async (
     orderBy: ReviewOrderBy.CREATED | ReviewOrderBy.RATING,
-    sortOrder: OrderByDirections
+    sortOrder: OrderByDirections,
+    userId?: string
 ) => {
     return prisma.userReview.findMany({
         ...reviewWithMovie,
+        ...(process.env.VISITOR_DEMO === 'true'
+            ? { where: { reviewerId: userId || 'no-visitor' } }
+            : {}),
         orderBy: {
             [orderBy]: sortOrder,
         },
     })
 }
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions)
     if (!session?.user?.userId)
         return void res.status(401).json({ error: 'Sign in required' })
@@ -59,14 +62,15 @@ export default async function handler(
                 return void res
                     .status(400)
                     .json({ error: 'Invalid sort order' })
-            return void res
-                .status(200)
-                .json(
-                    await prisma.userReview.findMany({
-                        ...reviewWithMovie,
-                        orderBy: { [order.data]: direction.data },
-                    })
-                )
+            return void res.status(200).json(
+                await prisma.userReview.findMany({
+                    ...reviewWithMovie,
+                    ...(process.env.VISITOR_DEMO === 'true'
+                        ? { where: { reviewerId: session.user.userId } }
+                        : {}),
+                    orderBy: { [order.data]: direction.data },
+                })
+            )
         }
         if (req.method !== 'POST') {
             res.setHeader('Allow', 'GET, POST')
@@ -82,21 +86,21 @@ export default async function handler(
         )
             return void res.status(400).json({ error: 'Invalid review' })
         const { id, title, review, rating, movie } = parsed.data
-        return void res
-            .status(201)
-            .json(
-                await prisma.userReview.create({
-                    data: {
-                        id,
-                        title,
-                        review: reviewHtml(review),
-                        rating,
-                        movie,
-                        reviewer: { connect: { id: session.user.userId } },
-                    },
-                })
-            )
+        return void res.status(201).json(
+            await prisma.userReview.create({
+                data: {
+                    id,
+                    title,
+                    review: reviewHtml(review),
+                    rating,
+                    movie: visitorMovieRelation(movie),
+                    reviewer: { connect: { id: session.user.userId } },
+                },
+            })
+        )
     } catch {
         return void res.status(400).json({ error: 'Could not save review' })
     }
 }
+
+export default withVisitorGuard(handler)

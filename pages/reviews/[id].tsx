@@ -1,3 +1,7 @@
+import { ReviewEditor } from '@/components/movieReviews/ReviewEditor'
+import { useSession } from 'next-auth/react'
+import { getServerSession } from 'next-auth'
+import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { serializePage } from 'utils/serializePage'
 import { DetailButtons } from '@/components/movieDetail/DetailButtons'
 import { ReviewBreadcrumbs } from '@/components/movieReviews/ReviewBreadcrumbs'
@@ -15,6 +19,7 @@ import {
     Paper,
     Stack,
     Title,
+    Text,
     TypographyStylesProvider,
     useMantineTheme,
 } from '@mantine/core'
@@ -29,6 +34,7 @@ interface IReviewPage {
 }
 
 const ReviewPage = ({ thisReview }: IReviewPage) => {
+    const { data: session } = useSession()
     const { targetRef } = useScrollIntoView<HTMLDivElement>({
         offset: 60,
     })
@@ -42,6 +48,9 @@ const ReviewPage = ({ thisReview }: IReviewPage) => {
             authRequired
         >
             <ReviewBreadcrumbs id={thisReview.id} />
+            {session?.user?.userId === thisReview.reviewerId && (
+                <ReviewEditor review={thisReview} />
+            )}
             <Container p='xl'>
                 <Paper p='xl' radius='md' shadow='md'>
                     <Stack spacing='xl'>
@@ -78,7 +87,17 @@ const ReviewPage = ({ thisReview }: IReviewPage) => {
                                 >
                                     <a>
                                         <Image
-                                            src={`${thisReview?.movie?.poster}`}
+                                            src={
+                                                thisReview.movie.poster ||
+                                                undefined
+                                            }
+                                            withPlaceholder
+                                            height={320}
+                                            placeholder={
+                                                <Text align='center' p='md'>
+                                                    {thisReview.movie.title}
+                                                </Text>
+                                            }
                                             sx={{
                                                 ':hover': {
                                                     opacity: 0.85,
@@ -144,14 +163,20 @@ const ReviewPage = ({ thisReview }: IReviewPage) => {
 export default ReviewPage
 
 export async function getServerSideProps(context: GetServerSidePropsContext) {
+    const session = await getServerSession(
+        context.req,
+        context.res,
+        authOptions
+    )
     const id = context?.params?.id
 
     let thisReview: ReviewWithMovie | null = null
 
     if (id && !Array.isArray(id)) {
-        thisReview = await getReview(id)
+        thisReview = await getReview(id, session?.user?.userId)
     }
 
+    if (!thisReview) return { notFound: true }
     return {
         props: serializePage({ thisReview }),
     }

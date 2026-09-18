@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import { NextApiRequest, NextApiResponse } from 'next'
 import axios from 'server/providerHttp'
@@ -93,4 +94,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

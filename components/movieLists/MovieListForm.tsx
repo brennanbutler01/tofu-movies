@@ -9,6 +9,7 @@ import {
     Stack,
     Textarea,
     TextInput,
+    Text,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { closeAllModals } from '@mantine/modals'
@@ -80,20 +81,30 @@ export const MovieListForm = () => {
     }, [debounced])
 
     const [loading, setLoading] = useState(false)
+    const [saveError, setSaveError] = useState<string>()
 
     return (
         <form
             onSubmit={form.onSubmit(async val => {
                 setLoading(true)
-                await createMovieList(
-                    val.title,
-                    val.description,
-                    val.isPublic,
-                    val.movies.map(Number),
-                    val.image,
-                    val.allowEdits
-                ).then(() => closeAllModals())
-                setLoading(false)
+                setSaveError(undefined)
+                try {
+                    await createMovieList(
+                        val.title,
+                        val.description,
+                        val.isPublic,
+                        val.movies.map(Number),
+                        val.image,
+                        val.allowEdits
+                    )
+                    closeAllModals()
+                } catch {
+                    setSaveError(
+                        'Could not save your list. Your changes are still here; please retry.'
+                    )
+                } finally {
+                    setLoading(false)
+                }
             })}
         >
             <LoadingOverlay
@@ -102,27 +113,34 @@ export const MovieListForm = () => {
                 title='Creating'
             />
             <Stack spacing='xl'>
+                {saveError && (
+                    <Text role='alert' color='red'>
+                        {saveError}
+                    </Text>
+                )}
                 <TextInput
                     placeholder='Horror Movies'
                     label='List Title'
                     required
                     {...form.getInputProps('title')}
                 />
-                <FormFileUpload
-                    form={form}
-                    setLoading={setLoading}
-                    icon={<BiUpload />}
-                    label={'List Image'}
-                    rightSection={
-                        form.values.image && (
-                            <Avatar
-                                size={'sm'}
-                                mr={'sm'}
-                                src={form.values.image}
-                            />
-                        )
-                    }
-                />
+                {process.env.NEXT_PUBLIC_VISITOR_DEMO !== 'true' && (
+                    <FormFileUpload
+                        form={form}
+                        setLoading={setLoading}
+                        icon={<BiUpload />}
+                        label={'List Image'}
+                        rightSection={
+                            form.values.image && (
+                                <Avatar
+                                    size={'sm'}
+                                    mr={'sm'}
+                                    src={form.values.image}
+                                />
+                            )
+                        }
+                    />
+                )}
                 <Textarea
                     required
                     placeholder='These are great movies to watch around Halloween'

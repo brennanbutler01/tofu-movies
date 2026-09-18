@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { showNotification } from '@mantine/notifications'
 import {
     Button,
     Group,
@@ -25,6 +27,7 @@ export const DetailButtons = ({
     size = 'xl',
     position,
 }: IDetailButtons) => {
+    const [busy, setBusy] = useState(false)
     const theme = useMantineTheme()
     const { data: swrMovieLists } = useMovieListsSWR({})
 
@@ -39,23 +42,25 @@ export const DetailButtons = ({
 
     return (
         <Group {...(position && { position })}>
-            <Link
-                legacyBehavior
-                href={`https://www.themoviedb.org/movie/${tmdb_id}`}
-                passHref
-            >
-                <Button
-                    leftIcon={<BiPlay />}
-                    variant='gradient'
-                    gradient={theme.other.successGradient}
-                    size={size}
-                    component='a'
-                    target={'_blank'}
-                    fullWidth={fullWidth}
+            {process.env.NEXT_PUBLIC_VISITOR_DEMO !== 'true' && (
+                <Link
+                    legacyBehavior
+                    href={`https://www.themoviedb.org/movie/${tmdb_id}`}
+                    passHref
                 >
-                    Watch Now
-                </Button>
-            </Link>
+                    <Button
+                        leftIcon={<BiPlay />}
+                        variant='gradient'
+                        gradient={theme.other.successGradient}
+                        size={size}
+                        component='a'
+                        target={'_blank'}
+                        fullWidth={fullWidth}
+                    >
+                        Watch Now
+                    </Button>
+                </Link>
+            )}
             {status === 'authenticated' && (
                 <>
                     <Button
@@ -63,14 +68,25 @@ export const DetailButtons = ({
                         size={size}
                         rightIcon={inWatchlist ? <BiCheck /> : <GiSnailEyes />}
                         fullWidth={fullWidth}
-                        onClick={async () =>
-                            watchList?.id &&
-                            (await (watchList?.movies?.some(
-                                movie => movie.tmdb_id === tmdb_id
-                            )
-                                ? removeMovieFromList
-                                : addMovieToList)(watchList?.id, tmdb_id))
-                        }
+                        loading={busy}
+                        disabled={!watchList}
+                        onClick={async () => {
+                            if (!watchList) return
+                            setBusy(true)
+                            try {
+                                await (inWatchlist
+                                    ? removeMovieFromList
+                                    : addMovieToList)(watchList.id, tmdb_id)
+                            } catch {
+                                showNotification({
+                                    color: 'red',
+                                    message:
+                                        'Could not update your watchlist. Please try again.',
+                                })
+                            } finally {
+                                setBusy(false)
+                            }
+                        }}
                     >
                         {inWatchlist ? 'Watchlisted' : 'Watchlist?'}
                     </Button>

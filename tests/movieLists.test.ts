@@ -17,6 +17,7 @@ const list: FullMovieList = {
     isPublic: false,
     allowEdits: true,
     image: null,
+    ownerId: null,
     createdBy: owner.email,
     views: 0,
     movies: [],

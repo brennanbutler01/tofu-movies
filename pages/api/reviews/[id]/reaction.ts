@@ -1,12 +1,10 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { z } from 'zod'
 import { authOptions } from '../../auth/[...nextauth]'
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions)
     if (!session?.user?.userId)
         return void res.status(401).json({ error: 'Sign in required' })
@@ -23,7 +21,16 @@ export default async function handler(
     const reviewId = req.query.id,
         reviewerId = session.user.userId
     try {
-        if (!(await prisma.userReview.findUnique({ where: { id: reviewId } })))
+        if (
+            !(await prisma.userReview.findUnique({
+                where: {
+                    id: reviewId,
+                    ...(process.env.VISITOR_DEMO === 'true'
+                        ? { reviewerId: session.user.userId }
+                        : {}),
+                },
+            }))
+        )
             return void res.status(404).json({ error: 'Review not found' })
         return void res.status(200).json(
             await prisma.reviewLikeDislike.upsert({
@@ -36,3 +43,5 @@ export default async function handler(
         return void res.status(400).json({ error: 'Could not save reaction' })
     }
 }
+
+export default withVisitorGuard(handler)

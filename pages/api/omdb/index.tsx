@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { NextApiRequest, NextApiResponse } from 'next'
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
@@ -6,4 +7,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     })
 }
 
-export default handler
+export default withVisitorGuard(handler)

@@ -36,6 +36,7 @@ const Person = ({ credits, person }: IPerson) => {
 export default Person
 
 export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
+    if (process.env.VISITOR_DEMO === 'true') return { notFound: true }
     const person = await getPersonDetails(ctx.query.id as string)
     let credits
     if (person) {

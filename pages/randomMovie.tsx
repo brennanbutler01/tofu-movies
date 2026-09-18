@@ -124,4 +124,19 @@ const RandomMovie = () => {
     )
 }
 
-export default RandomMovie
+export default function RandomMoviePage() {
+    if (process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true')
+        return (
+            <PageWrapper authRequired title='Movie discovery | tofu.movies'>
+                <Title order={1}>Movie discovery</Title>
+                <Text mt='md'>
+                    Random discovery needs a live movie catalogue. This
+                    portfolio demo uses three fictional films instead.
+                </Text>
+                <Button component='a' href='/trending' mt='md'>
+                    Browse sample films
+                </Button>
+            </PageWrapper>
+        )
+    return <RandomMovie />
+}

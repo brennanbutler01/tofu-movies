@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
@@ -11,10 +12,7 @@ import {
 export { fullMovieList, getUserMovieLists } from '../../../server/movieLists'
 export type { FullMovieList } from '../../../server/movieLists'
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (!['GET', 'POST'].includes(req.method || '')) {
         res.setHeader('Allow', 'GET, POST')
         return void res.status(405).json({ error: 'Method not allowed' })
@@ -31,6 +29,11 @@ export default async function handler(
         if (!parsed.success)
             return void res.status(400).json({ error: 'Invalid list' })
         const input = parsed.data
+        if (process.env.VISITOR_DEMO === 'true' && input.movies?.create) {
+            return void res
+                .status(403)
+                .json({ error: 'The sample catalogue is read-only.' })
+        }
         if (
             input.users?.disconnect ||
             input.movies?.disconnect ||
@@ -50,6 +53,7 @@ export default async function handler(
                 description: input.description,
                 movies: input.movies,
                 createdBy: session.user.email,
+                ownerId: session.user.userId,
                 users: { connect: { id: session.user.userId } },
             },
             ...fullMovieList,
@@ -59,3 +63,5 @@ export default async function handler(
         return void res.status(500).json({ error: 'Could not save movie list' })
     }
 }
+
+export default withVisitorGuard(handler)

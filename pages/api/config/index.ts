@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import prisma from '@/prisma'
 import { ImageConfig } from '@prisma/client'
@@ -78,7 +79,7 @@ const createImageConfig = async (props: IConfig) =>
     })
 
 export const getImageUrl = async (): Promise<IConfig | void> => {
-    if (!process.env.MOVIE_KEY)
+    if (process.env.VISITOR_DEMO === 'true' || !process.env.MOVIE_KEY)
         return {
             base_url: 'https://image.tmdb.org/t/p/',
             poster_sizes: ['w500'],
@@ -128,4 +129,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

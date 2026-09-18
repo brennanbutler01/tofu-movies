@@ -42,7 +42,12 @@ export const MovieResultItem = ({ resultItem, config }: ISearchResultItem) => {
                                     <Link
                                         legacyBehavior
                                         passHref
-                                        href={'/movies/' + resultItem.id}
+                                        href={
+                                            '/movies/' +
+                                            ('tmdb_id' in resultItem
+                                                ? resultItem.tmdb_id
+                                                : resultItem.id)
+                                        }
                                     >
                                         <a>
                                             <MovieImage

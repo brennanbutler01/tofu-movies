@@ -27,12 +27,7 @@ export const ReviewBody = ({
         <TypographyStylesProvider>
             <Paper radius='lg' p='xs' shadow={'md'}>
                 <Group align={'center'} mb='sm' position='left'>
-                    <Link
-                        legacyBehavior
-                        href={'/reviews/' + id}
-                        passHref
-                        target={'_blank'}
-                    >
+                    <Link legacyBehavior href={'/reviews/' + id} passHref>
                         <Button
                             color={'blue'}
                             component={'a'}

@@ -4,44 +4,31 @@ A movie discovery and watchlist project built with TypeScript, React, Next.js, P
 
 **[Try the portfolio demo](https://tofu-movies-demo.vercel.app)** · [Reviewer guide](REVIEW.md) · [Recovery status](RECOVERY.md)
 
-The public demo lets visitors search fictional films, filter by genre, manage a watchlist, mark films watched, and save ratings and reviews. It needs no signup or provider credentials. State stays in the current browser tab and can be reset at any time.
+The application now includes a no-signup mode backed by PostgreSQL: private visitor watchlists, watched status, editable lists and reviews, reactions, and reset. It uses three clearly labeled fictional films. Sessions last one hour; live catalogue services, Google sign-in and uploads are disabled in this mode.
 
-The original application integrates movie catalogues, Google sign-in, shared lists, and PostgreSQL. The September 2026 recovery fixes a destructive list-read bug and adds permissions and input validation to list, profile, and review-update routes. The original authenticated backend remains local-only while the remaining audit work is completed.
+See [Visitor demo setup and verification](VISITOR-DEMO.md) for the build, local database, hosted configuration, isolation limits and tests. Deployment of this persisted edition is being verified; the URL above may still serve the prior static edition until that verification completes.
 
-## Run the demo
+## Development
 
-Use Node 24.13.0 and the pinned Yarn version through Corepack:
+Use Node 24 and pinned Yarn through Corepack:
 
 ```sh
 corepack yarn install --frozen-lockfile --ignore-scripts
 corepack yarn prisma generate
+corepack yarn local:setup
 corepack yarn typecheck
 corepack yarn test
-corepack yarn build:portfolio
-corepack yarn test:portfolio
-python3 -m http.server 5200 --bind 127.0.0.1 --directory portfolio-site/out
 ```
 
-Open http://127.0.0.1:5200. No environment file or database is required for the demo.
+Docker setup creates a disposable PostgreSQL database on loopback port 5199 and a gitignored environment file with a generated secret. It refuses other database addresses.
 
-## Test the original backend locally
+The normal application mode preserves the original provider integrations. `corepack yarn test:local` exercises 60 real HTTP/database checks against a local server on port 5198, with temporary database sessions and cleanup. Set `LOCAL_API_URL` to use another loopback port. These tests do not require a login bypass or original credentials.
 
-Docker is required. Setup creates only a disposable PostgreSQL database on `127.0.0.1:5199`, plus a gitignored `.env.local` with a generated session secret. It refuses any other database address.
+The previous standalone static demo remains in `portfolio-site/`. Its build and browser tests use `build:portfolio` and `test:portfolio`.
 
-```sh
-corepack yarn local:setup
-corepack yarn dev --hostname 127.0.0.1 --port 5198
-# In another terminal:
-corepack yarn test:local
-```
+## Security and publication
 
-The HTTP tests create temporary users, sessions, lists, films and reviews, then delete their fixtures. They exercise the real Next.js handlers and PostgreSQL, with no login-bypass endpoint or old credentials. Google login and live catalogue calls need separately provisioned provider credentials; they are not needed for these tests.
-
-## Deployment boundary
-
-`corepack yarn deploy:portfolio` builds and tests the demo, then uploads only the static export to the dedicated personal Vercel project. It does not deploy the original backend, source tree, historical assets or environment files. The project has no provider secrets and no Git-triggered deployment connection.
-
-Repository publication remains pending the credential-history cleanup and historical asset review described in [RECOVERY.md](RECOVERY.md).
+This repository has a clean independent publication history. The application recovery adds ownership checks, validated writes, and safe list reads. New hosting uses a separate database and newly generated session credentials. Removing old secrets from published source does not revoke credentials at their original providers.
 
 ## Original project
 

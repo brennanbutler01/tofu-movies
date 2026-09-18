@@ -1,14 +1,15 @@
+import { visitorMovieRelation } from 'server/visitorMovieRelation'
+import { withVisitorGuard } from 'server/visitor'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import prisma from '@/prisma'
 import { authOptions } from '../auth/[...nextauth]'
 import { matchesViewer, UserMovieCreate } from '../../../server/writeSchemas'
 export const getUserMovies = (userId: string) =>
-    prisma.userMovie.findMany({ where: { userId } })
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+    userId
+        ? prisma.userMovie.findMany({ where: { userId } })
+        : Promise.resolve([])
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions)
     if (!session?.user?.userId)
         return void res.status(401).json({ error: 'Sign in required' })
@@ -35,7 +36,7 @@ export default async function handler(
             data: {
                 id,
                 seen,
-                movie,
+                movie: visitorMovieRelation(movie),
                 user: { connect: { id: session.user.userId } },
             },
         })
@@ -46,3 +47,5 @@ export default async function handler(
             .json({ error: 'Could not save watch record' })
     }
 }
+
+export default withVisitorGuard(handler)

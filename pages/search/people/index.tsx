@@ -126,3 +126,6 @@ const PersonSearch = () => {
     )
 }
 export default PersonSearch
+
+export const getServerSideProps = async () =>
+    process.env.VISITOR_DEMO === 'true' ? { notFound: true } : { props: {} }

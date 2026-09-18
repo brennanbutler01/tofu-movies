@@ -15,7 +15,21 @@ const RecommendationItemDetail = ({ config, movie }: Props) => {
             <Link legacyBehavior href={`/movies/${movie.id}`} passHref>
                 <a>
                     <Image
-                        src={`${config?.base_url}/${config?.poster_sizes[6]}/${movie.poster_path}`}
+                        src={
+                            movie.poster_path
+                                ? `${config?.base_url}/${
+                                      config?.poster_sizes[
+                                          config.poster_sizes.length - 1
+                                      ]
+                                  }/${movie.poster_path}`
+                                : undefined
+                        }
+                        withPlaceholder
+                        placeholder={
+                            <Text align='center' p='md'>
+                                {movie.title}
+                            </Text>
+                        }
                         height={450}
                         radius='md'
                         sx={{

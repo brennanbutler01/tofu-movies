@@ -9,8 +9,20 @@ const TrendingItemDetail = ({ trending, config }: TrendingItemProps) => {
             <Link legacyBehavior href={'/movies/' + trending?.id} passHref>
                 <a>
                     <Image
-                        height={500}
-                        src={`${config.base_url}/${config.poster_sizes[6]}/${trending?.poster_path}`}
+                        height={340}
+                        withPlaceholder={!trending.poster_path}
+                        placeholder={
+                            <Text p='xl' size='xl' weight={700}>
+                                {trending.title}
+                            </Text>
+                        }
+                        src={
+                            trending.poster_path
+                                ? `${config.base_url}/${config.poster_sizes.at(
+                                      -1
+                                  )}${trending.poster_path}`
+                                : undefined
+                        }
                         radius='md'
                         sx={theme => ({
                             ':hover': {

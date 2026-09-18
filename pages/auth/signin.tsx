@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { PageWrapper } from '@/components/PageWrapper'
 import { Button, Title, Stack, Paper, createStyles, Text } from '@mantine/core'
 import { signIn } from 'next-auth/react'
@@ -6,8 +7,11 @@ const useStyles = createStyles(theme => ({
     wrapper: {
         minHeight: 900,
         backgroundSize: 'cover',
-        backgroundImage:
-            'url(https://www.simplehelp.net/images/wuwp/uw-wallpaper06.jpg)',
+        backgroundImage: theme.fn.gradient({
+            from: 'grape',
+            to: 'indigo',
+            deg: 140,
+        }),
     },
 
     form: {
@@ -41,6 +45,8 @@ const useStyles = createStyles(theme => ({
 
 const SignIn = () => {
     const { classes, theme } = useStyles()
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState<string>()
 
     return (
         <PageWrapper title={`Login | tofu.movies`}>
@@ -69,6 +75,11 @@ const SignIn = () => {
                         </Text>
                     </Title>
 
+                    {error && (
+                        <Text color='red' role='alert'>
+                            {error}
+                        </Text>
+                    )}
                     <Stack pb='lg'>
                         <Button
                             mt='xs'
@@ -78,11 +89,40 @@ const SignIn = () => {
                             radius='sm'
                             gradient={theme.other.successGradient}
                             fullWidth
-                            onClick={() =>
-                                signIn('google', { callbackUrl: '/' })
-                            }
+                            loading={loading}
+                            onClick={async () => {
+                                if (
+                                    process.env.NEXT_PUBLIC_VISITOR_DEMO !==
+                                    'true'
+                                ) {
+                                    await signIn('google', { callbackUrl: '/' })
+                                    return
+                                }
+                                setLoading(true)
+                                setError(undefined)
+                                try {
+                                    const response = await fetch(
+                                        '/api/demo/session',
+                                        { method: 'POST' }
+                                    )
+                                    if (!response.ok)
+                                        throw new Error(
+                                            'The demo is busy. Please try again shortly.'
+                                        )
+                                    window.location.assign('/')
+                                } catch (error) {
+                                    setError(
+                                        error instanceof Error
+                                            ? error.message
+                                            : 'Unable to start the demo.'
+                                    )
+                                    setLoading(false)
+                                }
+                            }}
                         >
-                            Sign in with Google
+                            {process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true'
+                                ? 'Start demo'
+                                : 'Sign in with Google'}
                         </Button>
                     </Stack>
                 </Paper>

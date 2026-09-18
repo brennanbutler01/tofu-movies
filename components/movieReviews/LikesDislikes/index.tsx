@@ -30,6 +30,11 @@ const LikeDislike = ({ reviewId }: ILikeDislike) => {
                     )
                     return (
                         <Button
+                            aria-label={
+                                key === 'likes'
+                                    ? 'Like review'
+                                    : 'Dislike review'
+                            }
                             radius='lg'
                             variant={
                                 theme.colorScheme === 'dark'

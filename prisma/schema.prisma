@@ -57,6 +57,17 @@ model User {
   userProviders UserProvider[]
   userReviews   UserReview[]
   movieLists    MovieList[]
+  ownedLists    MovieList[] @relation("ListOwner")
+  demoVisit     DemoVisit?
+}
+
+model DemoVisit {
+  userId String @id
+  expiresAt DateTime
+  requests Int @default(0)
+  writeBytes Int @default(0)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([expiresAt])
 }
 
 model UserProvider {
@@ -66,7 +77,7 @@ model UserProvider {
   logo          String?
   provider_name String?
   linked        Boolean @default(false)
-  user          User    @relation(fields: [userId], references: [id])
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, tmdb_id])
 }
@@ -84,7 +95,7 @@ model Rating {
   source  String
   value   String
   movieId String
-  movie   Movie  @relation(fields: [movieId], references: [id])
+  movie   Movie  @relation(fields: [movieId], references: [id], onDelete: Cascade)
 }
 
 model MovieList {
@@ -99,6 +110,8 @@ model MovieList {
   users       User[]
   movies      Movie[]
   createdBy   String   @default("System Generated")
+  ownerId     String?
+  owner       User? @relation("ListOwner", fields: [ownerId], references: [id], onDelete: Cascade)
   views       Int      @default(0)
 }
 
@@ -111,8 +124,8 @@ model UserReview {
   rating        Int
   reviewerId    String
   movieId       String
-  movie         Movie               @relation(fields: [movieId], references: [id])
-  reviewer      User                @relation(fields: [reviewerId], references: [id])
+  movie         Movie               @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  reviewer      User                @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
   likesDislikes ReviewLikeDislike[]
 }
 
@@ -123,8 +136,8 @@ model ReviewLikeDislike {
   reviewId   String
   reviewerId String
   action     LikeActions
-  review     UserReview  @relation(fields: [reviewId], references: [id])
-  reviewer   User        @relation(fields: [reviewerId], references: [id])
+  review     UserReview  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  reviewer   User        @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
 
   @@unique([reviewId, reviewerId])
 }
@@ -160,8 +173,8 @@ model UserMovie {
   movieId String
   seen    Boolean @default(false)
   userId  String
-  movie   Movie   @relation(fields: [movieId], references: [id])
-  user    User    @relation(fields: [userId], references: [id])
+  movie   Movie   @relation(fields: [movieId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum LikeActions {

@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { reviewHtml } from '../../../utils/reviewHtml'
 import { z } from 'zod'
@@ -7,8 +8,16 @@ import { HttpMethods } from 'utils/httpMethods'
 import { reviewWithMovie } from '.'
 import { authOptions } from '../auth/[...nextauth]'
 
-export const getReview = async (id: string) =>
-    await prisma.userReview.findUnique({ where: { id }, ...reviewWithMovie })
+export const getReview = async (id: string, userId?: string) =>
+    await prisma.userReview.findUnique({
+        where: {
+            id,
+            ...(process.env.VISITOR_DEMO === 'true'
+                ? { reviewerId: userId || 'no-visitor' }
+                : {}),
+        },
+        ...reviewWithMovie,
+    })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const { method } = req
@@ -21,7 +30,11 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         try {
             switch (method) {
                 case HttpMethods.GET:
-                    const thisReview = await getReview(id)
+                    const thisReview = await getReview(id, session.user.userId)
+                    if (!thisReview)
+                        return void res
+                            .status(404)
+                            .json({ error: 'Review not found' })
                     res.status(200).json(thisReview)
                     break
                 case HttpMethods.PUT:
@@ -37,7 +50,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                         return void res
                             .status(400)
                             .json({ error: 'Invalid review' })
-                    const existing = await getReview(id)
+                    const existing = await getReview(id, session.user.userId)
                     if (
                         !existing ||
                         existing.reviewerId !== session.user.userId
@@ -76,4 +89,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         })
     }
 }
-export default handler
+export default withVisitorGuard(handler)

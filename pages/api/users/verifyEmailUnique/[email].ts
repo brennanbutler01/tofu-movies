@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../../auth/[...nextauth]'
@@ -20,4 +21,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default handler
+export default withVisitorGuard(handler)

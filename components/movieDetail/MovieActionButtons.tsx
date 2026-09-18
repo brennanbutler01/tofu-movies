@@ -8,7 +8,8 @@ import { MovieListTitles } from '../search/MovieListMenu'
 import { useUserMovieSWR } from 'userMovies/useUserMovieSWR'
 import { useUserMovieCRUD } from 'userMovies/useUserMovieCRUD'
 import { ReviewModalButton } from '@/components/movieReviews/ReviewModalButton'
-import React from 'react'
+import React, { useState } from 'react'
+import { showNotification } from '@mantine/notifications'
 
 const useStyles = createStyles((_, _params) => ({
     verticalFlex: {
@@ -34,6 +35,20 @@ const ButtonWrapper = ({ children }: IButtonWrapper) => {
 }
 
 export const MovieActionButtons = ({ movie }: IMovieActionButtons) => {
+    const [busy, setBusy] = useState(false)
+    const runAction = async (action: () => Promise<unknown>) => {
+        setBusy(true)
+        try {
+            await action()
+        } catch {
+            showNotification({
+                color: 'red',
+                message: 'Could not save your change. Please try again.',
+            })
+        } finally {
+            setBusy(false)
+        }
+    }
     const { addMovieToList, removeMovieFromList } = useMovieListsCRUD()
     const { data: movieLists } = useMovieListsSWR({})
     const watchList = movieLists?.find(
@@ -51,22 +66,29 @@ export const MovieActionButtons = ({ movie }: IMovieActionButtons) => {
         <Group spacing={'lg'}>
             <ButtonWrapper>
                 <ActionIcon
-                    disabled={!swrMovies}
+                    aria-label='Toggle watchlist'
+                    aria-pressed={Boolean(watchListHasThisFilm)}
+                    disabled={!swrMovies || busy}
                     size='xl'
                     radius='xl'
                     variant='filled'
                     color={watchListHasThisFilm ? 'grape' : 'gray'}
-                    onClick={async () =>
-                        watchList?.id &&
-                        (watchList?.movies?.some(m => m.tmdb_id === movie.id)
-                            ? await removeMovieFromList(
-                                  watchList?.id,
-                                  movie?.id as number
-                              )
-                            : await addMovieToList(
-                                  watchList?.id,
-                                  movie?.id as number
-                              ))
+                    onClick={() =>
+                        runAction(
+                            async () =>
+                                watchList?.id &&
+                                (watchList?.movies?.some(
+                                    m => m.tmdb_id === movie.id
+                                )
+                                    ? await removeMovieFromList(
+                                          watchList?.id,
+                                          movie?.id as number
+                                      )
+                                    : await addMovieToList(
+                                          watchList?.id,
+                                          movie?.id as number
+                                      ))
+                        )
                     }
                 >
                     <BiPlus size={32} />
@@ -75,7 +97,12 @@ export const MovieActionButtons = ({ movie }: IMovieActionButtons) => {
             </ButtonWrapper>
             <ButtonWrapper>
                 <ActionIcon
-                    disabled={!swrMovies}
+                    aria-label='Mark as watched'
+                    aria-pressed={Boolean(
+                        swrUserMovies?.find(m => m.movieId === thisMovie?.id)
+                            ?.seen
+                    )}
+                    disabled={!swrMovies || busy}
                     size='xl'
                     radius={'xl'}
                     variant='filled'
@@ -85,31 +112,35 @@ export const MovieActionButtons = ({ movie }: IMovieActionButtons) => {
                             ? 'grape'
                             : 'gray'
                     }
-                    onClick={async () => {
-                        const thisUserMovie = swrUserMovies?.find(
-                            m => m.movieId === thisMovie?.id
-                        )
+                    onClick={() =>
+                        runAction(async () => {
+                            const thisUserMovie = swrUserMovies?.find(
+                                m => m.movieId === thisMovie?.id
+                            )
 
-                        console.log('has user movie', thisUserMovie)
-                        if (!thisUserMovie) {
-                            await createUserMovie({
-                                tmdb_id: movie?.id as number,
-                                seen: true,
-                            })
-                        } else {
-                            await updateUserMovie({
-                                userMovieId: thisUserMovie?.id,
-                                seen: !thisUserMovie?.seen,
-                            })
-                        }
-                    }}
+                            if (!thisUserMovie) {
+                                await createUserMovie({
+                                    tmdb_id: movie?.id as number,
+                                    seen: true,
+                                })
+                            } else {
+                                await updateUserMovie({
+                                    userMovieId: thisUserMovie?.id,
+                                    seen: !thisUserMovie?.seen,
+                                })
+                            }
+                        })
+                    }
                 >
                     <BiCheck size={32} />
                 </ActionIcon>
                 <Text color='dimmed'>Seen it</Text>
             </ButtonWrapper>
             <ButtonWrapper>
-                <ReviewModalButton movie={movie} disabled={!swrMovies} />
+                <ReviewModalButton
+                    movie={movie}
+                    disabled={!swrMovies || busy}
+                />
 
                 <Text color='dimmed'>Rate It</Text>
             </ButtonWrapper>

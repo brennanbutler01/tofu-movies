@@ -15,7 +15,11 @@
         "build:portfolio": "next build portfolio-site --webpack",
         "test:portfolio": "playwright test --config=playwright.portfolio.config.ts",
         "test:local": "node scripts/verify-local-api.mjs",
-        "deploy:portfolio": "yarn build:portfolio && yarn test:portfolio && python3 scripts/deploy_portfolio.py"
+        "deploy:portfolio": "yarn build:portfolio && yarn test:portfolio && python3 scripts/deploy_portfolio.py",
+        "test:visitor": "playwright test --config=playwright.visitor.config.ts",
+        "test:visitor-api": "python3 tests/test_visitor.py",
+        "test:visitor-lifecycle": "node scripts/verify-visitor-lifecycle.mjs",
+        "deploy:visitor": "python3 scripts/deploy_visitor.py"
     },
     "dependencies": {
         "@emotion/react": "^11.10.0",

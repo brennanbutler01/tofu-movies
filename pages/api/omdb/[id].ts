@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import { NextApiRequest, NextApiResponse } from 'next'
 
@@ -36,18 +37,22 @@ export interface IOmdbResponse {
 const OMDB_URL = 'https://www.omdbapi.com/'
 
 export const getOmdb = async (imdbId: string) =>
-    await axios
-        .get<IOmdbResponse>(OMDB_URL, {
-            params: {
-                apikey: process.env.OMDB_KEY,
-                i: imdbId,
-                plot: 'full',
-            },
-        })
-        .then(res => res.data)
-        .catch(() => {
-            throw new Error('Movie information is temporarily unavailable.')
-        })
+    process.env.VISITOR_DEMO === 'true'
+        ? {}
+        : await axios
+              .get<IOmdbResponse>(OMDB_URL, {
+                  params: {
+                      apikey: process.env.OMDB_KEY,
+                      i: imdbId,
+                      plot: 'full',
+                  },
+              })
+              .then(res => res.data)
+              .catch(() => {
+                  throw new Error(
+                      'Movie information is temporarily unavailable.'
+                  )
+              })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -60,4 +65,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler, 'omdb')
+export default withVisitorGuard(withProviderAccess(handler, 'omdb'))

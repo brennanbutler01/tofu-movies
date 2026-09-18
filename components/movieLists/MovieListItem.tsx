@@ -165,7 +165,16 @@ const MovieListItem = ({
                                                 }}
                                                 color={'dimmed'}
                                             >
-                                                Created by {list.createdBy}
+                                                {process.env
+                                                    .NEXT_PUBLIC_VISITOR_DEMO ===
+                                                'true' ? (
+                                                    'Your demo list'
+                                                ) : (
+                                                    <>
+                                                        Created by{' '}
+                                                        {list.createdBy}
+                                                    </>
+                                                )}
                                             </Text>
                                         </Menu.Target>
                                         <Menu.Dropdown>
@@ -226,7 +235,13 @@ const MovieListItem = ({
                                         sx={{ textOverflow: 'ellipsis' }}
                                         color={'dimmed'}
                                     >
-                                        Created by {list.createdBy}
+                                        {process.env
+                                            .NEXT_PUBLIC_VISITOR_DEMO ===
+                                        'true' ? (
+                                            'Your demo list'
+                                        ) : (
+                                            <>Created by {list.createdBy}</>
+                                        )}
                                     </Text>
                                 )}
                             </Group>

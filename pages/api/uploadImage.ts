@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { promises as fs } from 'fs'
 import formidable, { File } from 'formidable'
@@ -8,10 +9,7 @@ import { authOptions } from 'pages/api/auth/[...nextauth]'
 export const config = { api: { bodyParser: false } }
 export type ImageReturn = { status: 'fail' | 'ok'; message: string }
 
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST')
         return res
             .status(405)
@@ -81,3 +79,5 @@ export default async function handler(
         )
     }
 }
+
+export default withVisitorGuard(handler)

@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import { NextApiRequest, NextApiResponse } from 'next'
 import randomWords from 'random-words'
@@ -27,4 +28,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         res.status(403).json({ err: 'Error getting random movie - ' + err })
     }
 }
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

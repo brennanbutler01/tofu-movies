@@ -89,8 +89,15 @@ const TopHalfMovieDetail = ({
                                     <div ref={ref}>
                                         <Image
                                             src={
-                                                entry?.isIntersecting
-                                                    ? `${config?.base_url}/${config?.poster_sizes[6]}/${fullMovie?.poster_path}`
+                                                entry?.isIntersecting &&
+                                                fullMovie.poster_path
+                                                    ? `${
+                                                          config?.base_url
+                                                      }/${config?.poster_sizes.at(
+                                                          -1
+                                                      )}${
+                                                          fullMovie.poster_path
+                                                      }`
                                                     : undefined
                                             }
                                             sx={{ maxWidth: '450px' }}

@@ -7,6 +7,7 @@ import {
     Stack,
     TextInput,
     Textarea,
+    Text,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useState } from 'react'
@@ -26,7 +27,7 @@ interface ITmdb {
 }
 
 export const ReviewForm = ({ tmdb_id }: ITmdb) => {
-    const [richValue, setRichValue] = useState('')
+    const [saveError, setSaveError] = useState<string>()
     const [errors, setErrors] = useState<Record<keyof IReviewForm, string>>({
         rating: '',
         review: '',
@@ -66,18 +67,23 @@ export const ReviewForm = ({ tmdb_id }: ITmdb) => {
     }
 
     const handleSubmit = async (props: IReviewForm) => {
-        setLoading(true)
-        if (tmdb_id) {
-            resetErrors()
-            await createReview(props, tmdb_id)
-        } else {
-            const { movie: tmdb_id, ...values } = props
-            if (tmdb_id) {
-                await createReview(values, tmdb_id)
-            }
+        const movieId = tmdb_id || props.movie
+        if (!movieId) {
+            setSaveError('Choose a movie before saving your review.')
+            return
         }
-        setLoading(false)
-        closeAllModals()
+        setLoading(true)
+        setSaveError(undefined)
+        try {
+            await createReview(props, movieId)
+            closeAllModals()
+        } catch {
+            setSaveError(
+                'Could not save your review. Your text is still here; please retry.'
+            )
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -88,6 +94,11 @@ export const ReviewForm = ({ tmdb_id }: ITmdb) => {
             )}
         >
             <Stack>
+                {saveError && (
+                    <Text color='red' role='alert'>
+                        {saveError}
+                    </Text>
+                )}
                 <LoadingOverlay visible={loading} />
                 {!tmdb_id && (
                     <Input.Wrapper

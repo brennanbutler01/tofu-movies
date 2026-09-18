@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { Prisma } from '@prisma/client'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -8,7 +9,14 @@ import { authOptions } from '../auth/[...nextauth]'
 
 export const movieWithLists = Prisma.validator<Prisma.MovieDefaultArgs>()({
     include: {
-        lists: { where: { isPublic: true } },
+        lists: {
+            where: {
+                isPublic: true,
+                ...(process.env.VISITOR_DEMO === 'true'
+                    ? { id: 'no-shared-visitor-lists' }
+                    : {}),
+            },
+        },
     },
 })
 
@@ -31,6 +39,10 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
                     res.status(200).json(dbMovies)
                     break
                 case HttpMethods.POST:
+                    if (process.env.VISITOR_DEMO === 'true')
+                        return void res.status(403).json({
+                            error: 'The sample catalogue is read-only.',
+                        })
                     const parsed = MovieInput.safeParse(req.body)
                     if (!parsed.success)
                         return void res
@@ -61,4 +73,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default handler
+export default withVisitorGuard(handler)

@@ -1,12 +1,10 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]'
 import { ProviderUpdate } from '../../../server/writeSchemas'
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions)
     if (!session?.user?.userId)
         return void res.status(401).json({ error: 'Sign in required' })
@@ -38,3 +36,5 @@ export default async function handler(
         return void res.status(500).json({ error: 'Could not update provider' })
     }
 }
+
+export default withVisitorGuard(handler)

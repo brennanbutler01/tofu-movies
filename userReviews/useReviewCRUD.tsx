@@ -34,65 +34,29 @@ export const useReviewCRUD = () => {
     const swrMovies = useMovieSWR({})
 
     const createReview = async (formValues: IReviewForm, tmdb_id: number) => {
-        const hasUserMovie = swrMovies?.find(movie => movie.tmdb_id === tmdb_id)
-
-        const create = await createDbMovie(tmdb_id, false)
-            ?.then(res => res)
-            .catch(console.error)
-
-        showNotification({
-            message: hasUserMovie
-                ? 'Has the movie...'
-                : 'Dont have the movie already and need to create it - this may take a second',
-            color: hasUserMovie ? 'green' : 'orange',
-            icon: hasUserMovie ? <BiLike /> : <BiAlarmExclamation />,
-        })
-        const movieProps: Prisma.MovieCreateNestedOneWithoutReviewsInput =
-            hasUserMovie
-                ? { connect: { tmdb_id } }
-                : { create: create?.create as Prisma.MovieCreateInput }
-        const newReview: Prisma.UserReviewCreateInput = {
+        if (!session?.user?.userId)
+            throw new Error('Start a session before saving a review.')
+        const existing = swrMovies?.find(movie => movie.tmdb_id === tmdb_id)
+        const prepared = existing
+            ? undefined
+            : await createDbMovie(tmdb_id, false)
+        if (!existing && !prepared)
+            throw new Error('Could not load this movie. Please retry.')
+        await axios.post(url, {
             id: uuid(),
-            ...formValues,
-            reviewer: {
-                connect: {
-                    id: session?.user?.userId,
-                },
-            },
-            movie: movieProps,
-        }
-
-        const options = {
-            optimisticData: [
-                {
-                    ...newReview,
-                    reviewer: session?.user,
-                    reviewerId: session?.user?.userId,
-                    movie: hasUserMovie || create?.mutate,
-                },
-                ...swrReviews,
-            ],
-        }
-
-        console.log('these are our mutators - ', create?.mutate)
-        await Promise.all([
-            mutate(
-                url,
-                axios.post(url, newReview).then(() => {
-                    showNotification({
-                        message: 'Review added successfully',
-                        icon: <BiCheckCircle />,
-                        color: 'teal',
-                    })
-                    return options.optimisticData
-                }),
-                options
-            ),
-            !hasUserMovie &&
-                mutate('/api/movies', [...swrMovies, create?.mutate], {
-                    revalidate: false,
-                }),
-        ])
+            title: formValues.title,
+            review: formValues.review,
+            rating: formValues.rating,
+            movie: existing
+                ? { connect: { tmdb_id } }
+                : { create: prepared?.create },
+        })
+        await mutate(url)
+        showNotification({
+            message: 'Review saved',
+            color: 'teal',
+            icon: <BiCheckCircle />,
+        })
     }
 
     const likeDislikeReview = async (
@@ -116,8 +80,6 @@ export const useReviewCRUD = () => {
                       }
                     : r
             )
-
-            console.log('mutate reviews', mutateReviews)
 
             await mutate(
                 '/api/reviews?orderBy=' + orderBy + '&sortOrder=' + sortOrder,

@@ -1,13 +1,17 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from 'pages/api/auth/[...nextauth]'
 import { fullMovieList } from '..'
 
-export const getPublicMovieLists = async () =>
+export const getPublicMovieLists = async (email?: string | null) =>
     await prisma.movieList.findMany({
         where: {
             isPublic: true,
+            ...(process.env.VISITOR_DEMO === 'true'
+                ? { createdBy: email || 'no-visitor' }
+                : {}),
         },
         ...fullMovieList,
         orderBy: {
@@ -21,7 +25,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
     if (session?.user?.email) {
         try {
-            const publicMovieLists = await getPublicMovieLists()
+            const publicMovieLists = await getPublicMovieLists(
+                session.user.email
+            )
             res.status(200).json(publicMovieLists)
         } catch (err) {
             const errString =
@@ -38,4 +44,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default handler
+export default withVisitorGuard(handler)

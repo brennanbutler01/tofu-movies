@@ -38,6 +38,7 @@ const ReviewTriggerWrapper = ({
         </Button>
     ) : (
         <ActionIcon
+            aria-label='Write a review'
             onClick={onClick}
             variant={'filled'}
             size={'xl'}

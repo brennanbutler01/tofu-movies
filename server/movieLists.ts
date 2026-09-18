@@ -17,6 +17,7 @@ export function ownsList(list: FullMovieList, viewer: Viewer) {
     )
 }
 export function canReadList(list: FullMovieList, viewer: Viewer) {
+    if (process.env.VISITOR_DEMO === 'true') return ownsList(list, viewer)
     return (
         list.isPublic ||
         ownsList(list, viewer) ||
@@ -36,12 +37,14 @@ export async function getMovieList(id: string, viewer: Viewer) {
     })
     return list && canReadList(list, viewer) ? list : null
 }
-export const getUserMovieLists = (email: string) =>
-    prisma.movieList.findMany({
-        where: { users: { some: { email } } },
-        ...fullMovieList,
-        orderBy: { title: 'asc' },
-    })
+export const getUserMovieLists = (email: string | null | undefined) =>
+    !email
+        ? Promise.resolve([])
+        : prisma.movieList.findMany({
+              where: { users: { some: { email } } },
+              ...fullMovieList,
+              orderBy: { title: 'asc' },
+          })
 
 const text = z.string().max(20000).nullable().optional()
 const image = z

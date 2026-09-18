@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getImageUrl } from '../config'
 import { movieSearch } from '../search/[...params]'
@@ -35,4 +36,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default handler
+export default withVisitorGuard(handler)

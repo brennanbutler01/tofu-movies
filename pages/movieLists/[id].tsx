@@ -1,3 +1,4 @@
+import { ListDetailsEditor } from '@/components/movieLists/ListDetailsEditor'
 import { serializePage } from 'utils/serializePage'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../api/auth/[...nextauth]'
@@ -64,6 +65,10 @@ const MovieList = ({ movieList, config }: IMovieList) => {
             <Stack>
                 <MovieListBreadcrumbs />
                 <Title>{movieList?.title}</Title>
+                <Text>{movieList.description}</Text>
+                {movieList.createdBy === session.data?.user?.email && (
+                    <ListDetailsEditor list={movieList} />
+                )}
                 {listItems?.length > 0 ? (
                     <SimpleGrid
                         spacing='xl'

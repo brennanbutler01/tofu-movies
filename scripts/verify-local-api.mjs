@@ -12,7 +12,9 @@ if (
 const database = new PrismaClient({
     adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 })
-const base = 'http://127.0.0.1:5198'
+const base = process.env.LOCAL_API_URL || 'http://127.0.0.1:5198'
+if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(base))
+    throw new Error('Local API URL must use loopback')
 const users = [],
     lists = [],
     movies = []

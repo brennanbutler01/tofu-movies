@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import axios from 'server/providerHttp'
 import { NextApiRequest, NextApiResponse } from 'next'
@@ -38,16 +39,20 @@ const CREDITS_URL = (movieId: number) =>
     `https://api.themoviedb.org/3/movie/${movieId}/credits`
 
 export const getCredits = async (movieId: number) =>
-    await axios
-        .get<ICreditAPIResponse>(CREDITS_URL(movieId), {
-            params: {
-                api_key: process.env.MOVIE_KEY,
-            },
-        })
-        .then(res => res.data)
-        .catch(() => {
-            throw new Error('Movie information is temporarily unavailable.')
-        })
+    process.env.VISITOR_DEMO === 'true'
+        ? { id: movieId, cast: [], crew: [] }
+        : await axios
+              .get<ICreditAPIResponse>(CREDITS_URL(movieId), {
+                  params: {
+                      api_key: process.env.MOVIE_KEY,
+                  },
+              })
+              .then(res => res.data)
+              .catch(() => {
+                  throw new Error(
+                      'Movie information is temporarily unavailable.'
+                  )
+              })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     try {
@@ -60,4 +65,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

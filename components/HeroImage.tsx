@@ -1,13 +1,25 @@
-import { createStyles, Container, Title, Text, Overlay } from '@mantine/core'
+import {
+    createStyles,
+    Container,
+    Title,
+    Text,
+    Overlay,
+    Button,
+} from '@mantine/core'
+import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { UserProviderButton } from './userProviders/UserProviderButton'
 
 const useStyles = createStyles(theme => ({
     wrapper: {
         position: 'relative',
-        paddingTop: 180,
-        paddingBottom: 130,
-        backgroundImage: 'url(https://wallpaperaccess.com/full/3658597.jpg)',
+        paddingTop: 70,
+        paddingBottom: 70,
+        backgroundImage: theme.fn.gradient({
+            from: 'indigo',
+            to: 'grape',
+            deg: 140,
+        }),
         backgroundSize: 'cover',
         backgroundPosition: 'center',
 
@@ -112,16 +124,22 @@ function HeroImage() {
 
                 <Container size={640}>
                     <Text size='lg' className={classes.description}>
-                        Track, manage, and find new film content with ease.
-                        Tofu.Movies provides all of the tools and features
-                        necessary to handle managing your movies, allowing you
-                        to focus on what is important: enjoying your films!
+                        Keep a watchlist, save a review, and remember what you
+                        want to watch next.
                     </Text>
                 </Container>
 
                 <div className={classes.controls}>
-                    {session.status === 'authenticated' && (
-                        <UserProviderButton />
+                    {process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true' ? (
+                        <Link href='/trending' passHref legacyBehavior>
+                            <Button component='a' size='lg'>
+                                Browse sample films
+                            </Button>
+                        </Link>
+                    ) : (
+                        session.status === 'authenticated' && (
+                            <UserProviderButton />
+                        )
                     )}
                 </div>
             </div>

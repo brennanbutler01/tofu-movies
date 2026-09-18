@@ -53,9 +53,10 @@ export const getServerSideProps = async (ctx: GetServerSidePropsContext) => {
 
     return {
         props: serializePage({
-            reviews: await getReviews(
+            results: await getReviews(
                 ReviewOrderBy.CREATED,
-                OrderByDirections.DESC
+                OrderByDirections.DESC,
+                session?.user?.userId
             ),
         }),
     }

@@ -175,7 +175,11 @@ export function SearchAuto({
                         mr='lg'
                         size='xs'
                         radius='xl'
-                        data={['Movies', 'People']}
+                        data={
+                            process.env.NEXT_PUBLIC_VISITOR_DEMO === 'true'
+                                ? ['Movies']
+                                : ['Movies', 'People']
+                        }
                         value={searchFilter}
                         onChange={val => setSearchFilter(val as SearchFilters)}
                     />

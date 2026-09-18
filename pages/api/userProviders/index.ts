@@ -1,12 +1,10 @@
+import { withVisitorGuard } from 'server/visitor'
 import prisma from '@/prisma'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '../auth/[...nextauth]'
 import { matchesViewer, ProviderCreate } from '../../../server/writeSchemas'
-export default async function handler(
-    req: NextApiRequest,
-    res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     const session = await getServerSession(req, res, authOptions)
     if (!session?.user?.userId)
         return void res.status(401).json({ error: 'Sign in required' })
@@ -31,23 +29,23 @@ export default async function handler(
         )
             return void res.status(400).json({ error: 'Invalid provider' })
         const { id, tmdb_id, logo, provider_name, linked } = parsed.data
-        return void res
-            .status(201)
-            .json(
-                await prisma.userProvider.upsert({
-                    where: { userId_tmdb_id: { userId, tmdb_id } },
-                    create: {
-                        id,
-                        tmdb_id,
-                        logo,
-                        provider_name,
-                        linked,
-                        userId,
-                    },
-                    update: { linked },
-                })
-            )
+        return void res.status(201).json(
+            await prisma.userProvider.upsert({
+                where: { userId_tmdb_id: { userId, tmdb_id } },
+                create: {
+                    id,
+                    tmdb_id,
+                    logo,
+                    provider_name,
+                    linked,
+                    userId,
+                },
+                update: { linked },
+            })
+        )
     } catch {
         return void res.status(400).json({ error: 'Could not save provider' })
     }
 }
+
+export default withVisitorGuard(handler)

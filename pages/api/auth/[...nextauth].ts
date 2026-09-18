@@ -5,12 +5,16 @@ import GoogleProvider from 'next-auth/providers/google'
 export const authOptions: NextAuthOptions = {
     adapter: PrismaAdapter(prisma),
     // Configure one or more authentication providers
-    providers: [
-        GoogleProvider({
-            clientId: process.env.GOOGLE_CLIENT_ID as string,
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-        }),
-    ],
+    session: { maxAge: 3600, updateAge: 3600 },
+    providers:
+        process.env.VISITOR_DEMO === 'true'
+            ? []
+            : [
+                  GoogleProvider({
+                      clientId: process.env.GOOGLE_CLIENT_ID as string,
+                      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+                  }),
+              ],
     pages: {
         signIn: '/auth/signin',
         verifyRequest: '/auth/verify-request',

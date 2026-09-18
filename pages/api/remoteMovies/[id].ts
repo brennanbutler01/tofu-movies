@@ -1,3 +1,4 @@
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import { IConfig, getImageUrl } from 'pages/api/config'
 import { IMovieDetail, getMovieDetails } from 'pages/api/movieDetails/[id]'
@@ -40,4 +41,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

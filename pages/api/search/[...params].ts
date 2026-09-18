@@ -1,3 +1,5 @@
+import { sampleSearch, sampleMovies } from 'server/sampleCatalogue'
+import { withVisitorGuard } from 'server/visitor'
 import { withProviderAccess } from 'server/providerAccess'
 import { NextApiRequest, NextApiResponse } from 'next'
 
@@ -31,20 +33,24 @@ export interface IMovieResponse {
 const url = 'https://api.themoviedb.org/3/search/movie'
 
 export const movieSearch = async (query: string, page?: number) =>
-    await axios
-        .get<IMovieResponse>(url, {
-            params: {
-                api_key: process.env.MOVIE_KEY,
-                query,
-                page,
-            },
-        })
-        .then(res => {
-            return res.data
-        })
-        .catch(() => {
-            throw new Error('Movie information is temporarily unavailable.')
-        })
+    process.env.VISITOR_DEMO === 'true'
+        ? sampleSearch(query)
+        : await axios
+              .get<IMovieResponse>(url, {
+                  params: {
+                      api_key: process.env.MOVIE_KEY,
+                      query,
+                      page,
+                  },
+              })
+              .then(res => {
+                  return res.data
+              })
+              .catch(() => {
+                  throw new Error(
+                      'Movie information is temporarily unavailable.'
+                  )
+              })
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     const query = req.query.params
@@ -65,4 +71,4 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     }
 }
 
-export default withProviderAccess(handler)
+export default withVisitorGuard(withProviderAccess(handler))

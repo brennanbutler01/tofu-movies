@@ -1,7 +1,7 @@
 const nextJest = require('next/jest')
 const createConfig = nextJest({ dir: './' })({
     testEnvironment: 'node',
-    testPathIgnorePatterns: ['/node_modules/', '/__e2e__/'],
+    testPathIgnorePatterns: ['/node_modules/', '/__e2e__/', '/e2e-visitor/'],
     watchman: false,
 })
 module.exports = async () => ({
